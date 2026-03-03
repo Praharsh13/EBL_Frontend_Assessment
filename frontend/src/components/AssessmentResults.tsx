@@ -3,6 +3,7 @@ import axios from 'axios'
 import './AssessmentResults.css'
 import QuestionItem from './QuestionItem'
 import QuestionDetailModal from './QuestionDetailModal'
+import ScoreChart from './ScoreChart'
 
 interface AssessmentResults {
   instance: {
@@ -82,6 +83,31 @@ export default function AssessmentResults({ instanceId }: Props) {
     const element = Object.values(results.element_scores)[0]
     let questions=element.question_answers
 
+
+     //transform data for the Bar chart
+     //Based on how question answered, unanswered or reflection or not
+     const scorePerQuestion = questions.map((q) => {
+      const isAttempted = q.is_answered ?? false
+    
+      if (q.is_reflection) {
+        return {
+          name: `R${q.question_sequence}`,
+          score: 0, // visual placeholder only
+          maxScore: null,
+          type: 'reflection',
+          isAttempted
+        }
+      }
+    
+      return {
+        name: `Q${q.question_sequence}`,
+        score: isAttempted ? q.answer_value ?? 0 : 0,
+        maxScore: q.max_score ?? 5,
+        type: 'question',
+        isAttempted
+      }
+    })
+
     
 
   
@@ -91,6 +117,7 @@ export default function AssessmentResults({ instanceId }: Props) {
       
     
       filteredQuestions: questions,
+      scorePerQuestion
     }
 
    
@@ -208,6 +235,12 @@ export default function AssessmentResults({ instanceId }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Bar Chart */}
+
+      {derivedResult && (
+       <ScoreChart data={derivedResult.scorePerQuestion} />
       )}
 
 

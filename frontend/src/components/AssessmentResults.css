@@ -397,3 +397,55 @@
 .close-btn:hover {
   background: #1d4ed8;
 }
+
+/* Bar Chart */
+.score-chart-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  margin-top: 20px;
+}
+
+.score-chart-title {
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+
+.score-chart-container:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.chart-tooltip {
+  background: #1f2937;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.legend-box {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.high { background: #27ae60; }
+.medium { background: #f39c12; }
+.low { background: #e74c3c; }
+.unanswer { background: #bdc3c7; }
+.reflection { background: #8e44ad; }
+.reflection-miss { background: #d2b4de; }
