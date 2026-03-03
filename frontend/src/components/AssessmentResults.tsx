@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState,useMemo} from 'react'
 import axios from 'axios'
 import './AssessmentResults.css'
+import QuestionItem from './QuestionItem'
 
 interface AssessmentResults {
   instance: {
@@ -29,10 +30,26 @@ interface Props {
   instanceId: string
 }
 
+// Interface for each question typed
+export interface QuestionAnswer{
+  question_id: string
+  question_sequence: number
+  question_title: string
+  is_answered: boolean
+  is_reflection: boolean
+  reflection_prompt: string | null
+  answer_value: number | null
+  max_score:number
+  option_number?:number
+  answer_text: string | null
+  text_answer?:string
+}
+
 export default function AssessmentResults({ instanceId }: Props) {
   const [results, setResults] = useState<AssessmentResults | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [selectedQuestion, setSelectedQuestion]=useState<QuestionAnswer | null>(null)
 
   useEffect(() => {
     if (!instanceId) return
@@ -55,6 +72,30 @@ export default function AssessmentResults({ instanceId }: Props) {
 
     fetchResults()
   }, [instanceId])
+
+
+   //Question level data transformation function
+
+   const derivedResult= useMemo(() => {
+    if(!results) return null
+    const element = Object.values(results.element_scores)[0]
+    let questions=element.question_answers
+
+    
+
+  
+    
+     
+    return {
+      
+    
+      filteredQuestions: questions,
+    }
+
+   
+
+
+  },[results])
 
   if (loading) {
     return <div className="loading">Loading results...</div>
@@ -167,6 +208,17 @@ export default function AssessmentResults({ instanceId }: Props) {
           </div>
         </div>
       )}
+
+
+       {/* Question Breakdown Component */}
+
+       <div className="card">
+        <h3>Question Breakdown</h3>
+        {derivedResult.filteredQuestions.length === 0 && <div className="empty">No questions match filter.</div>}
+        {derivedResult.filteredQuestions.map(q => (
+          <QuestionItem key={q.question_id} question={q} onClick={() => setSelectedQuestion(q)} />
+        ))}
+      </div>
 
       {/* Insights */}
       {results.insights.length > 0 && (
