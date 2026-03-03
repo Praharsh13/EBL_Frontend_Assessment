@@ -4,6 +4,7 @@ import './AssessmentResults.css'
 import QuestionItem from './QuestionItem'
 import QuestionDetailModal from './QuestionDetailModal'
 import ScoreChart from './ScoreChart'
+import AssessmentControls from './AssessmentControls'
 
 interface AssessmentResults {
   instance: {
@@ -47,11 +48,39 @@ export interface QuestionAnswer{
   text_answer?:string
 }
 
+// Interface for showing Element_score i.e 1.1,1.2 etc
+export interface ElementScore {
+  element: string
+  total_questions: number
+  answered_questions: number
+  completion_percentage: number
+  scores: {
+    total_score: number
+    max_score: number
+    percentage: number
+  }
+  question_answers: QuestionAnswer[]
+}
+
+//Status logic
+const getStatus = (completion: number) => {
+  if (completion === 0) return 'Not Started'
+  if (completion === 100) return 'Completed'
+  return 'In Progress'
+}
+
 export default function AssessmentResults({ instanceId }: Props) {
   const [results, setResults] = useState<AssessmentResults | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedQuestion, setSelectedQuestion]=useState<QuestionAnswer | null>(null)
+  const [statusFilter, setStatusFilter] =
+    useState<'Completed' | 'In Progress' | 'Not Started'>('In Progress')
+
+  const [sortBy, setSortBy] =
+    useState<'Completion' | 'Score'>('Completion')
+
+  const [selectedElement, setSelectedElement] = useState('')
 
   useEffect(() => {
     if (!instanceId) return
@@ -75,30 +104,76 @@ export default function AssessmentResults({ instanceId }: Props) {
     fetchResults()
   }, [instanceId])
 
+  //Using first element score by default
 
-   //Question level data transformation function
+  const firstElementKey = useMemo(() => {
+    if (!results?.element_scores) return ''
+  
+    const keys = Object.keys(results.element_scores)
+    return keys.length > 0 ? keys[0] : ''
+  }, [results])
 
-   const derivedResult= useMemo(() => {
-    if(!results) return null
-    const element = Object.values(results.element_scores)[0]
-    let questions=element.question_answers
+  const activeElement = selectedElement || firstElementKey
+
+  //Element level data transformation, filtering and sorting
+
+  const processedElements = useMemo(() => {
+    if (!results?.element_scores) return []
+
+    let elements = Object.values(results.element_scores).map(el => ({
+      ...el,
+      status: getStatus(el.completion_percentage ?? 0)
+    }))
+
+    elements = elements.filter(el => el.status === statusFilter)
+
+    if (sortBy === 'Completion') {
+      elements.sort(
+        (a, b) =>
+          (b.completion_percentage ?? 0) -
+          (a.completion_percentage ?? 0)
+      )
+    }
+
+    if (sortBy === 'Score') {
+      elements.sort(
+        (a, b) =>
+          (b.scores?.percentage ?? 0) -
+          (a.scores?.percentage ?? 0)
+      )
+    }
+
+    return elements
+  }, [results, statusFilter, sortBy])
 
 
-     //transform data for the Bar chart
-     //Based on how question answered, unanswered or reflection or not
-     const scorePerQuestion = questions.map((q) => {
-      const isAttempted = q.is_answered ?? false
+  
     
+
+  
+    
+ 
+  const derivedResult = useMemo(() => {
+    if (!results?.element_scores || !activeElement) return null
+  
+    const element = results.element_scores[activeElement]
+    if (!element) return null
+  
+    const questions = element.question_answers
+  
+    const scorePerQuestion = questions.map(q => {
+      const isAttempted = q.is_answered ?? false
+  
       if (q.is_reflection) {
         return {
           name: `R${q.question_sequence}`,
-          score: 0, // visual placeholder only
+          score: 0,
           maxScore: null,
           type: 'reflection',
           isAttempted
         }
       }
-    
+  
       return {
         name: `Q${q.question_sequence}`,
         score: isAttempted ? q.answer_value ?? 0 : 0,
@@ -107,23 +182,13 @@ export default function AssessmentResults({ instanceId }: Props) {
         isAttempted
       }
     })
-
-    
-
   
-    
-     
     return {
-      
-    
+      element,
       filteredQuestions: questions,
       scorePerQuestion
     }
-
-   
-
-
-  },[results])
+  }, [results, activeElement])
 
   if (loading) {
     return <div className="loading">Loading results...</div>
@@ -236,6 +301,17 @@ export default function AssessmentResults({ instanceId }: Props) {
           </div>
         </div>
       )}
+
+      {/* */}
+      <AssessmentControls
+  statusFilter={statusFilter}
+  setStatusFilter={setStatusFilter}
+  sortBy={sortBy}
+  setSortBy={setSortBy}
+  activeElement={activeElement}
+  setSelectedElement={setSelectedElement}
+  processedElements={processedElements}
+/>
 
       {/* Bar Chart */}
 

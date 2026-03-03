@@ -449,3 +449,53 @@
 .unanswer { background: #bdc3c7; }
 .reflection { background: #8e44ad; }
 .reflection-miss { background: #d2b4de; }
+
+/* Element Control*/
+.assessment-controls {
+  display: flex;
+  gap: 28px;
+  align-items: flex-end;
+  background: #ffffff;
+  padding: 18px 24px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.control-block {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+
+.control-block label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.control-block select {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #dcdcdc;
+  background: #f8fafc;
+  font-size: 14px;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.control-block select:hover {
+  border-color: #3498db;
+  background: #ffffff;
+}
+
+.control-block select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+  background: #ffffff;
+}
