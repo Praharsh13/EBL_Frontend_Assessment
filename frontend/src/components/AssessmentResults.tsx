@@ -2,6 +2,7 @@ import { useEffect, useState,useMemo} from 'react'
 import axios from 'axios'
 import './AssessmentResults.css'
 import QuestionItem from './QuestionItem'
+import QuestionDetailModal from './QuestionDetailModal'
 
 interface AssessmentResults {
   instance: {
@@ -236,6 +237,13 @@ export default function AssessmentResults({ instanceId }: Props) {
             ))}
           </div>
         </div>
+      )}
+
+
+      {/*Each question model detail */}
+
+      {selectedQuestion && (
+        <QuestionDetailModal question={selectedQuestion} onClose={()=>setSelectedQuestion(null)}/>
       )}
     </div>
   )
