@@ -69,10 +69,27 @@ const getStatus = (completion: number) => {
   return 'In Progress'
 }
 
+//helper function logic
+const getScoreColor = (percentage: number) => {
+  if (percentage >= 80) return '#27ae60'
+  if (percentage >= 60) return '#f39c12'
+  return '#e74c3c'
+}
+
+//Error
+type ErrorType =
+  | 'not-found'
+  | 'generic'
+  
+
+interface Error {
+  message: string
+  type: ErrorType
+}
 export default function AssessmentResults({ instanceId }: Props) {
   const [results, setResults] = useState<AssessmentResults | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<Error | null>(null)
   const [selectedQuestion, setSelectedQuestion]=useState<QuestionAnswer | null>(null)
   const [statusFilter, setStatusFilter] =
     useState<'Completed' | 'In Progress' | 'Not Started'>('In Progress')
@@ -82,25 +99,55 @@ export default function AssessmentResults({ instanceId }: Props) {
 
   const [selectedElement, setSelectedElement] = useState('')
 
-  useEffect(() => {
+  
+  //Fetch function
+  const fetchResults = async (retryCount = 0) => {
     if (!instanceId) return
-
-    const fetchResults = async () => {
-      setLoading(true)
-      setError(null)
-
-      try {
-        const response = await axios.get(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:8002'}/api/assessment/results/${instanceId}`
-        )
-        setResults(response.data)
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load assessment results')
-      } finally {
-        setLoading(false)
+  
+    setLoading(true)
+    setError(null)
+  
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL || 'http://localhost:8002'}/api/assessment/results/${instanceId}`
+      )
+  
+      setResults(response.data)
+    } catch (err: any) {
+      const isNetworkError = !err.response
+      const status=err.response?.status
+  
+      // Auto retry for network errors (max 2 times)
+      if (isNetworkError && retryCount < 2) {
+        setTimeout(() => {
+          fetchResults(retryCount + 1)
+        }, 1500)
+        return
       }
-    }
 
+      if (status === 500) {
+        setError({
+          type: 'not-found',
+          message: 'Assessment not found. The instance ID may be incorrect.'
+        })
+
+
+      }else{
+        setError({
+          type: 'generic',
+          message: 'Something went wrong.'
+        })
+
+      }
+  
+      
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  //useEffect to fetch it
+  useEffect(() => {
     fetchResults()
   }, [instanceId])
 
@@ -195,18 +242,24 @@ export default function AssessmentResults({ instanceId }: Props) {
   }
 
   if (error) {
-    return <div className="error">Error: {error}</div>
+    return (
+      <div className={`error-state ${error.type}`}>
+        <h3>Error</h3>
+        <p>{error.message}</p>
+  
+        {error.type !== 'not-found' && (
+          <button onClick={() => fetchResults()}>
+            Retry
+          </button>
+        )}
+      </div>
+    )
   }
-
   if (!results) {
     return <div className="empty">No results to display</div>
   }
 
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return '#27ae60'
-    if (percentage >= 60) return '#f39c12'
-    return '#e74c3c'
-  }
+  
 
   return (
     <div className="assessment-results">
@@ -301,17 +354,16 @@ export default function AssessmentResults({ instanceId }: Props) {
           </div>
         </div>
       )}
-
-      {/* */}
+      {/* Element level control */}
       <AssessmentControls
-  statusFilter={statusFilter}
-  setStatusFilter={setStatusFilter}
-  sortBy={sortBy}
-  setSortBy={setSortBy}
-  activeElement={activeElement}
-  setSelectedElement={setSelectedElement}
-  processedElements={processedElements}
-/>
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          activeElement={activeElement}
+          setSelectedElement={setSelectedElement}
+          processedElements={processedElements}
+      />
 
       {/* Bar Chart */}
 
@@ -322,13 +374,13 @@ export default function AssessmentResults({ instanceId }: Props) {
 
        {/* Question Breakdown Component */}
 
-       <div className="card">
+       {derivedResult && (<div className="card">
         <h3>Question Breakdown</h3>
         {derivedResult.filteredQuestions.length === 0 && <div className="empty">No questions match filter.</div>}
         {derivedResult.filteredQuestions.map(q => (
           <QuestionItem key={q.question_id} question={q} onClick={() => setSelectedQuestion(q)} />
         ))}
-      </div>
+      </div>)}
 
       {/* Insights */}
       {results.insights.length > 0 && (

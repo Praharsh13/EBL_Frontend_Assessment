@@ -499,3 +499,66 @@
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
   background: #ffffff;
 }
+
+/* Error */
+.error-state {
+  max-width: 520px;
+  margin: 80px auto;
+  padding: 40px 36px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+  text-align: center;
+  animation: fadeInError 0.3s ease-in-out;
+  position: relative;
+}
+
+/* Heading */
+.error-state h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: #2c3e50;
+}
+
+/* Message */
+.error-state p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 26px;
+  line-height: 1.6;
+}
+
+/* Retry Button */
+.error-state button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: #3498db;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.error-state button:hover {
+  background: #2c80b4;
+  transform: translateY(-1px);
+}
+
+.error-state button:active {
+  transform: translateY(0);
+}
+
+
+
+/* Wrong Instance ID */
+.error-state.not-found {
+  border-top: 5px solid #e74c3c;
+}
+
+
+
+
+
